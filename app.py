@@ -65,9 +65,10 @@ def cargar_llm():
     return HuggingFaceEndpoint(
         repo_id=MODEL_ID,
         huggingfacehub_api_token=HF_TOKEN,
-        max_new_tokens=250,
+        max_new_tokens=200,
         task="text-generation",
-        do_sample=False,
+        do_sample=True,
+        temperature=0.3,
         repetition_penalty=1.1,
     )
 
@@ -120,7 +121,7 @@ def _formatear_documentos(docs):
             texto_limpio.append(contenido)
     
     texto_unido = "\n\n".join(texto_limpio)
-    return texto_unido[:1500]
+    return texto_unido[:800]
 
 def construir_cadena_rag(vectorstore, llm):
     retriever = vectorstore.as_retriever(search_kwargs={"k": 2})
