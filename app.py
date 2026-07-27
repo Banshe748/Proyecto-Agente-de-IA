@@ -64,10 +64,9 @@ def cargar_llm():
         st.stop()
     return HuggingFaceEndpoint(
         repo_id=MODEL_ID,
-        provider="auto",  # deja que Hugging Face elija el proveedor disponible para el modelo
         huggingfacehub_api_token=HF_TOKEN,
-        max_new_tokens=250,      # <-- CAMBIO 1: Bajamos de 300 a 250
-        task="text-generation",  # <-- CAMBIO 2: Añadimos la tarea explícita
+        max_new_tokens=250,
+        task="text-generation",
         do_sample=False,
         repetition_penalty=1.1,
     )
