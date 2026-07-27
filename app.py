@@ -19,17 +19,15 @@ load_dotenv()  # solo tiene efecto en local, si existe un archivo .env
 # ============================================================
 NOMBRE_EMPRESA = "Santos Pegasus Soluciones"
 CARPETA_DOCS = "docs"
-MODEL_ID = "google/gemma-3-1b-it"    # servido vía Hugging Face Inference Providers (no se carga localmente)
+MODEL_ID = "mistralai/Mistral-7B-Instruct-v0.3"   # servido vía Hugging Face Inference Providers (no se carga localmente)
 EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
-RAG_TEMPLATE = """<start_of_turn>user
-Eres un asistente que responde preguntas usando SOLO el siguiente contexto. Si la respuesta no está en el contexto, dilo claramente en vez de inventarla. Responde en español, de forma breve y directa.
+RAG_TEMPLATE = """<s>[INST] Eres un asistente que responde preguntas usando SOLO el siguiente contexto. Si la respuesta no está en el contexto, dilo claramente en vez de inventarla. Responde en español, de forma breve y directa.
 
 Contexto:
 {context}
 
-Pregunta: {input}<end_of_turn>
-<start_of_turn>model
+Pregunta: {input} [/INST]
 """
 
 st.set_page_config(page_title=f"Asistente de {NOMBRE_EMPRESA}", page_icon="📄", layout="wide")
