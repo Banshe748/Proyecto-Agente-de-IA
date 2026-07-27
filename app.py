@@ -9,8 +9,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings, HuggingFaceEndpoint
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import PromptTemplate
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import create_retrieval_chain
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
 
 load_dotenv()  # solo tiene efecto en local, si existe un archivo .env
 
@@ -114,11 +114,22 @@ def indexar_archivos_subidos(_embeddings, archivos):
     return FAISS.from_documents(chunks, _embeddings)
 
 
+def _formatear_documentos(docs):
+    """Extrae el texto (page_content) de los documentos encontrados y los une en un solo bloque de texto."""
+    return "\n\n".join(doc.page_content for doc in docs)
+
 def construir_cadena_rag(vectorstore, llm):
     retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
     prompt = PromptTemplate.from_template(RAG_TEMPLATE)
-    document_chain = create_stuff_documents_chain(llm, prompt)
-    return create_retrieval_chain(retriever, document_chain)
+    
+    # Construimos la tubería de datos (LCEL) paso a paso:
+    cadena = (
+        {"context": retriever | _formatear_documentos, "input": RunnablePassthrough()}
+        | prompt
+        | llm
+        | StrOutputParser()
+    )
+    return cadena
 
 
 # ============================================================
@@ -187,14 +198,13 @@ if pregunta:
     with st.chat_message("user"):
         st.markdown(pregunta)
 
-    with st.chat_message("assistant"):
+with st.chat_message("assistant"):
         with st.spinner("Pensando..."):
             cadena = construir_cadena_rag(vectorstore_activo, llm)
             try:
-                resultado = cadena.invoke({"input": pregunta})
-                respuesta = resultado["answer"].strip()
+                # 1. Pasamos 'pregunta' directamente (sin envolver en diccionario)
+                # 2. Recibimos el texto directo (sin buscar ["answer"])
+                respuesta = cadena.invoke(pregunta).strip()
             except Exception as e:
                 respuesta = f"Ocurrió un error al consultar el modelo: {e}"
             st.markdown(respuesta)
-
-    st.session_state.historial.append(("assistant", respuesta))
