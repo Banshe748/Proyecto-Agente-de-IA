@@ -6,6 +6,7 @@ langchain-text-splitters
 langchain-huggingface
 huggingface_hub
 sentence-transformers
+torchvision
 pypdf
 faiss-cpu
 python-dotenv
