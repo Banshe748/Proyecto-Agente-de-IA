@@ -80,7 +80,7 @@ def cargar_embeddings():
 
 
 def _dividir_en_chunks(documentos):
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=100)
     return splitter.split_documents(documentos)
 
 
@@ -119,10 +119,9 @@ def _formatear_documentos(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
 def construir_cadena_rag(vectorstore, llm):
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 2})
     prompt = PromptTemplate.from_template(RAG_TEMPLATE)
     
-    # Construimos la tubería de datos (LCEL) paso a paso:
     cadena = (
         {"context": retriever | _formatear_documentos, "input": RunnablePassthrough()}
         | prompt
@@ -202,9 +201,12 @@ with st.chat_message("assistant"):
         with st.spinner("Pensando..."):
             cadena = construir_cadena_rag(vectorstore_activo, llm)
             try:
-                # 1. Pasamos 'pregunta' directamente (sin envolver en diccionario)
-                # 2. Recibimos el texto directo (sin buscar ["answer"])
-                respuesta = cadena.invoke(pregunta).strip()
+                resultado = cadena.invoke(pregunta)
+                # Validamos que el servidor haya devuelto texto real y no un objeto None
+                if resultado:
+                    respuesta = str(resultado).strip()
+                else:
+                    respuesta = "⚠️ El servidor gratuito de Hugging Face devolvió una respuesta vacía por saturación temporal o por un texto demasiado largo. Intenta reformular tu pregunta."
             except Exception as e:
                 respuesta = f"Ocurrió un error al consultar el modelo: {e}"
             st.markdown(respuesta)
