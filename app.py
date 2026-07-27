@@ -115,8 +115,14 @@ def indexar_archivos_subidos(_embeddings, archivos):
 
 
 def _formatear_documentos(docs):
-    """Extrae el texto (page_content) de los documentos encontrados y los une en un solo bloque de texto."""
-    return "\n\n".join(doc.page_content for doc in docs)
+    texto_limpio = []
+    for doc in docs:
+        contenido = doc.page_content.replace("\x00", "").strip()
+        if contenido:
+            texto_limpio.append(contenido)
+    
+    texto_unido = "\n\n".join(texto_limpio)
+    return texto_unido[:1500]
 
 def construir_cadena_rag(vectorstore, llm):
     retriever = vectorstore.as_retriever(search_kwargs={"k": 2})
